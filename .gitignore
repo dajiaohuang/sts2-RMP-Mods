@@ -8,3 +8,4 @@ libs/
 # IDE
 .idea/
 .vscode/
+.vs/

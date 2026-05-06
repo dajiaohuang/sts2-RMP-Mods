@@ -2,6 +2,7 @@ using System;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Multiplayer.Serialization;
+using RemoveMultiplayerPlayerLimit.MultiCharacter;
 
 namespace RemoveMultiplayerPlayerLimit.Network;
 
@@ -40,6 +41,7 @@ public static class RmpProtocol
 		Unbind();
 		_netService = netService;
 		netService.RegisterMessageHandler<RmpConfigSyncMessage>(HandleConfigSync);
+		RmpOwnershipProtocol.RegisterHandlers(netService);
 		Log.Info($"RMP protocol v{ProtocolVersion} bound to {netService.Type} (NetId={netService.NetId})");
 	}
 
@@ -60,6 +62,7 @@ public static class RmpProtocol
 		{
 			// 服务可能已 disposed，忽略清理异常
 		}
+		RmpOwnershipProtocol.UnregisterHandlers();
 		_netService = null;
 	}
 

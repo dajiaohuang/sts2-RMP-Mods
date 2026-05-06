@@ -2,5 +2,10 @@
   "TREASURE_RELIC_SKIP_BUTTON": "Skip",
   "SETTINGS_TAB_LABEL": "RMP",
   "SETTINGS_PLAYER_LIMIT_LABEL": "Max Players",
-  "SETTINGS_DIFFICULTY_SCALING_LABEL": "Difficulty Scaling"
+  "SETTINGS_DIFFICULTY_SCALING_LABEL": "Difficulty Scaling",
+  "SETTINGS_MULTI_CHARACTER_LABEL": "Multi-Character Mode",
+  "MULTI_CHAR_YOUR_CHARACTERS": "Your Characters",
+  "MULTI_CHAR_CLAIM": "Claim",
+  "MULTI_CHAR_UNOWNED": "Unowned",
+  "MULTI_CHAR_SWITCH_TOOLTIP": "Click to switch to this character"
 }

@@ -7,6 +7,7 @@ using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
+using RemoveMultiplayerPlayerLimit.MultiCharacter;
 using RemoveMultiplayerPlayerLimit.Network;
 
 namespace RemoveMultiplayerPlayerLimit;
@@ -28,6 +29,8 @@ public static partial class ModEntry
 	private static readonly HashSet<NPaginator> PlayerLimitPaginators = new HashSet<NPaginator>();
 
 	private static readonly HashSet<NPaginator> DifficultyScalingPaginators = new HashSet<NPaginator>();
+
+	private static readonly HashSet<NPaginator> MultiCharacterPaginators = new HashSet<NPaginator>();
 
 	// ── 注入到 General 面板 Modding 行下方 ──────────────────────────────────
 
@@ -63,7 +66,8 @@ public static partial class ModEntry
 		{
 			bool isPlayerLimit = PlayerLimitPaginators.Contains(__instance);
 			bool isDifficultyScaling = DifficultyScalingPaginators.Contains(__instance);
-			if (!isPlayerLimit && !isDifficultyScaling)
+			bool isMultiCharacter = MultiCharacterPaginators.Contains(__instance);
+			if (!isPlayerLimit && !isDifficultyScaling && !isMultiCharacter)
 			{
 				return;
 			}
@@ -87,6 +91,10 @@ public static partial class ModEntry
 			else if (isDifficultyScaling)
 			{
 				ProtocolConfig.SetDifficultyScalingEnabled(options[index] == "ON");
+			}
+			else if (isMultiCharacter)
+			{
+				MultiCharacterConfig.SetEnabled(options[index] == "ON");
 			}
 			SaveModConfig();
 		}
@@ -178,7 +186,33 @@ public static partial class ModEntry
 			SetupDifficultyScalingPaginator(scalingPaginator);
 		}
 
-		// 8. 重建焦点链
+		// 8. 多角色模式开关行
+		MarginContainer multiCharRow = new MarginContainer();
+		multiCharRow.Name = "RmpMultiCharacter";
+		multiCharRow.CustomMinimumSize = new Vector2(0, 64);
+		multiCharRow.AddThemeConstantOverride("margin_left", 12);
+		multiCharRow.AddThemeConstantOverride("margin_top", 0);
+		multiCharRow.AddThemeConstantOverride("margin_right", 12);
+		multiCharRow.AddThemeConstantOverride("margin_bottom", 0);
+
+		if (templateLabel != null)
+		{
+			RichTextLabel multiCharLabel = (RichTextLabel)templateLabel.Duplicate();
+			multiCharLabel.Text = GetLocalizedText("SETTINGS_MULTI_CHARACTER_LABEL", "Multi-Character Mode");
+			multiCharLabel.MouseFilter = Control.MouseFilterEnum.Ignore;
+			multiCharRow.AddChild(multiCharLabel);
+		}
+
+		NPaginator? multiCharPaginator = CreateModPaginator("MultiCharacterPaginator");
+		if (multiCharPaginator != null)
+		{
+			multiCharRow.AddChild(multiCharPaginator);
+			vbox.AddChild(multiCharRow);
+			vbox.MoveChild(multiCharRow, insertIndex + 3);
+			SetupMultiCharacterPaginator(multiCharPaginator);
+		}
+
+		// 9. 重建焦点链
 		RebuildPanelFocusChain(generalPanel);
 	}
 
@@ -269,6 +303,25 @@ public static partial class ModEntry
 		}
 		DifficultyScalingPaginators.Add(paginator);
 		paginator.TreeExiting += () => DifficultyScalingPaginators.Remove(paginator);
+	}
+
+	private static void SetupMultiCharacterPaginator(NPaginator paginator)
+	{
+		if (PaginatorOptionsField?.GetValue(paginator) is not List<string> options)
+		{
+			return;
+		}
+		options.Clear();
+		options.Add("OFF");
+		options.Add("ON");
+		int currentIndex = MultiCharacterConfig.Enabled ? 1 : 0;
+		PaginatorCurrentIndexField?.SetValue(paginator, currentIndex);
+		if (PaginatorLabelField?.GetValue(paginator) is MegaLabel label)
+		{
+			label.SetTextAutoSize(options[currentIndex]);
+		}
+		MultiCharacterPaginators.Add(paginator);
+		paginator.TreeExiting += () => MultiCharacterPaginators.Remove(paginator);
 	}
 
 	private static void RebuildPanelFocusChain(NSettingsPanel panel)

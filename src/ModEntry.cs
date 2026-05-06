@@ -6,6 +6,7 @@ using System.Text.Json;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Modding;
+using RemoveMultiplayerPlayerLimit.MultiCharacter;
 using RemoveMultiplayerPlayerLimit.Network;
 
 namespace RemoveMultiplayerPlayerLimit;
@@ -34,7 +35,7 @@ public static partial class ModEntry
 		int slotIdCapacity = 1 << ProtocolConfig.SlotIdBits;
 		int lobbyListLengthCapacity = 1 << ProtocolConfig.LobbyListLengthBits;
 		new Harmony("cn.remove.multiplayer.playerlimit").PatchAll();
-		Log.Info($"RemoveMultiplayerPlayerLimit loaded. Target limit: {ProtocolConfig.TargetPlayerLimit}, protocol slot bits: {ProtocolConfig.SlotIdBits}, slot capacity: {slotIdCapacity}, protocol lobby bits: {ProtocolConfig.LobbyListLengthBits}, lobby list capacity: {lobbyListLengthCapacity}, difficulty scaling: {ProtocolConfig.DifficultyScalingEnabled}, macOS TLS workaround: {MacOsTlsWorkaroundEnabled}");
+		Log.Info($"RemoveMultiplayerPlayerLimit loaded. Target limit: {ProtocolConfig.TargetPlayerLimit}, protocol slot bits: {ProtocolConfig.SlotIdBits}, slot capacity: {slotIdCapacity}, protocol lobby bits: {ProtocolConfig.LobbyListLengthBits}, lobby list capacity: {lobbyListLengthCapacity}, difficulty scaling: {ProtocolConfig.DifficultyScalingEnabled}, multi-char: {MultiCharacterConfig.Enabled}, macOS TLS workaround: {MacOsTlsWorkaroundEnabled}");
 	}
 
 	private static void LoadOrCreateConfig()
@@ -96,6 +97,9 @@ public static partial class ModEntry
 				case "multiplayer" when key == "difficulty_scaling":
 					ProtocolConfig.SetDifficultyScalingEnabled(string.Equals(value, "true", StringComparison.OrdinalIgnoreCase));
 					break;
+				case "multi_character" when key == "enabled":
+					MultiCharacterConfig.SetEnabled(string.Equals(value, "true", StringComparison.OrdinalIgnoreCase));
+					break;
 			}
 		}
 	}
@@ -115,6 +119,9 @@ public static partial class ModEntry
 			writer.WriteLine("[multiplayer]");
 			writer.WriteLine($"max_player_limit={ProtocolConfig.TargetPlayerLimit}");
 			writer.WriteLine($"difficulty_scaling={ProtocolConfig.DifficultyScalingEnabled.ToString().ToLowerInvariant()}");
+			writer.WriteLine();
+			writer.WriteLine("[multi_character]");
+			writer.WriteLine($"enabled={MultiCharacterConfig.Enabled.ToString().ToLowerInvariant()}");
 		}
 		catch (Exception ex)
 		{
